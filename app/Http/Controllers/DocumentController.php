@@ -10,14 +10,20 @@ use App\Models\Document;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class DocumentController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $documents = Document::with(['user', 'history'])->latest()->get();
+        $user = $request->user();
+        $query = Document::with(['user', 'history'])->latest();
 
-        return response()->json($documents);
+        if (! $user->hasRole(['Legal_Compliance', 'Manager'])) {
+            $query->where('user_id', $user->id);
+        }
+
+        return response()->json($query->get());
     }
 
     public function store(StoreDocumentRequest $request): JsonResponse
@@ -33,11 +39,15 @@ class DocumentController extends Controller
 
     public function show(Document $document): JsonResponse
     {
+        Gate::authorize('view', $document);
+
         return response()->json($document->load(['user', 'history']));
     }
 
     public function update(UpdateDocumentStateRequest $request, Document $document): JsonResponse
     {
+        Gate::authorize('update', $document);
+
         try {
             $payload = $request->validated();
 
@@ -57,6 +67,8 @@ class DocumentController extends Controller
 
     public function destroy(Document $document): JsonResponse
     {
+        Gate::authorize('delete', $document);
+
         try {
             $document->delete();
 
