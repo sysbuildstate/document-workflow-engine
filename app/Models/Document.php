@@ -15,6 +15,10 @@ class Document extends Model
         'state',
     ];
 
+    protected $attributes = [
+        'state' => 'Draft',
+    ];
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
