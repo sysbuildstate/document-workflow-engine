@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Models\Role;
 
 class AuthController extends Controller
 {
@@ -27,6 +28,7 @@ class AuthController extends Controller
         ]);
 
         if (!empty($validated['role'])) {
+            Role::firstOrCreate(['name' => $validated['role']]);
             $user->assignRole($validated['role']);
         }
 
